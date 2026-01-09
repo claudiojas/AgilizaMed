@@ -1,7 +1,6 @@
 import fastify, { FastifyInstance } from "fastify";
-import { fastifyCors } from "@fastify/cors";
-
-
+import cors from "@fastify/cors";
+import userRoutes from "./routes/user.router"; // Adicionado
 
 export class App {
     private app: FastifyInstance;
@@ -25,9 +24,12 @@ export class App {
     };
 
     register() {
-        this.app.register(fastifyCors, {
+        this.app.register(cors, {
             origin: "*",
             methods: ['POST', 'DELETE', 'GET', 'PUT', 'PATCH']
         });
+
+        // Registrar as rotas de usuário
+        this.app.register(userRoutes, { prefix: '/api' });
     }
 }
