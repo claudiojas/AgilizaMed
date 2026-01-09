@@ -1,6 +1,8 @@
 import fastify, { FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
-import userRoutes from "./routes/user.router"; // Adicionado
+import multipart from "@fastify/multipart";
+import userRoutes from "./routes/user.router";
+import authRoutes from "./routes/auth.router"; 
 
 export class App {
     private app: FastifyInstance;
@@ -29,7 +31,12 @@ export class App {
             methods: ['POST', 'DELETE', 'GET', 'PUT', 'PATCH']
         });
 
-        // Registrar as rotas de usuário
+        // Register Multipart plugin
+        this.app.register(multipart);
+
+        // Register User Routes
         this.app.register(userRoutes, { prefix: '/api' });
+        // Register Auth Routes
+        this.app.register(authRoutes, { prefix: 'api' });
     }
 }
