@@ -1,3 +1,5 @@
+import type { User } from "../generated/prisma/client";
+
 export interface IUserCreate {
     email: string;
     name: string;
@@ -11,9 +13,9 @@ export interface IUserUpdate {
 };
 
 export interface IUserMethods {
-    createUser(data: IUserCreate): Promise<any>;
-    updateUser(id: string, data: IUserUpdate): Promise<any>;
-    deleteUser(id: string): Promise<any>;
-    getUserById(id: string): Promise<any>;
-    getAllUsers(): Promise<any[]>;
+    createUser(data: IUserCreate): Promise<User>;
+    updateUser(id: string, data: IUserUpdate): Promise<User>;
+    deleteUser(id: string): Promise<User>;
+    getUserById(id: string): Promise<User | null>;
+    getAllUsers(): Promise<User[]>;
 }

@@ -1,30 +1,30 @@
-import { IUserMethods } from "../interfaces/methods.intergaces";
+import { IUserMethods, IUserCreate, IUserUpdate } from "../interfaces/methods.intergaces";
+import { prisma } from "../lib/prisma";
+import type { User } from "../generated/prisma/client";
 
 export class UserRepository implements IUserMethods {
-    async createUser(data: any): Promise<any> {
-        // Implementation for creating a user
-        return {};
+    async createUser(data: IUserCreate): Promise<User> {
+        return prisma.user.create({ data });
     }
 
-    async updateUser(id: string, data: any): Promise<any> {
-        // Implementation for updating a user
-        return {};
+    async updateUser(id: string, data: IUserUpdate): Promise<User> {
+        return prisma.user.update({
+            where: { id },
+            data,
+        });
     }
 
-    async deleteUser(id: string): Promise<any> {
-        // Implementation for deleting a user
-        return {};
+    async deleteUser(id: string): Promise<User> {
+        return prisma.user.delete({ where: { id } });
     }
 
-    async getUserById(id: string): Promise<any> {
-        // Implementation for retrieving a user by ID
-        return {};
+    async getUserById(id: string): Promise<User | null> {
+        return prisma.user.findUnique({ where: { id } });
     }
 
-    async getAllUsers(): Promise<any[]> {
-        // Implementation for retrieving all users
-        return [];
+    async getAllUsers(): Promise<User[]> {
+        return prisma.user.findMany();
     }
-};
+}
 
 export const userRepository = new UserRepository();
