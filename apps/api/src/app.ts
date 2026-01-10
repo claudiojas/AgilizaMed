@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import userRoutes from "./routes/user.router";
 import authRoutes from "./routes/auth.router"; 
+import recordRoutes from "./routes/record.router"; // Adicionado
 
 export class App {
     private app: FastifyInstance;
@@ -37,6 +38,8 @@ export class App {
         // Register User Routes
         this.app.register(userRoutes, { prefix: '/api' });
         // Register Auth Routes
-        this.app.register(authRoutes, { prefix: 'api' });
+        this.app.register(authRoutes, { prefix: '/api' });
+        // Register Record Routes
+        this.app.register(recordRoutes, { prefix: '/api' });
     }
 }

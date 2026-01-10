@@ -1,4 +1,4 @@
-import { IUserMethods, IUserCreate, IUserUpdate } from "../interfaces/methods.intergaces";
+import { IUserMethods, IUserCreate, IUserUpdate } from "../interfaces/user.interfaces";
 import { prisma } from "../lib/prisma";
 import type { User } from "../generated/prisma/client";
 

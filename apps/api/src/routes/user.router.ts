@@ -75,6 +75,7 @@ export async function userRoutes(app: FastifyInstance) {
             if (error instanceof Error && error.message.includes("User not found")) {
                 return reply.status(404).send({ message: error.message });
             }
+            console.error(error); // Log the actual error
             return reply.status(500).send({ message: 'Internal Server Error' });
         }
     });

@@ -1,7 +1,7 @@
 import { hash } from 'bcryptjs';
 import { z } from 'zod';
 import { UserRepository } from '../repositories/user.repositorie';
-import type { IUserCreate, IUserUpdate } from '../interfaces/methods.intergaces';
+import type { IUserCreate, IUserUpdate } from '../interfaces/user.interfaces';
 
 // Zod schema for creation validation
 const createUserSchema = z.object({
