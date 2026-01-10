@@ -4,7 +4,17 @@ import { Record } from "@prisma/client";
 
 export class RecordRepository implements IRecordMethods {
     async createRecord(data: IRecordCreate): Promise<Record> {
-        return prisma.record.create({ data });
+        const { userId, ...restOfData } = data;
+        return prisma.record.create({
+            data: {
+                ...restOfData,
+                user: {
+                    connect: {
+                        id: userId,
+                    },
+                },
+            },
+        });
     }
 
     async updateRecord(id: string, data: IRecordUpdate): Promise<Record> {

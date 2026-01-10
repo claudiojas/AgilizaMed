@@ -2,12 +2,14 @@ import { FastifyInstance } from "fastify";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { UploadAudioUseCase } from "../usecase/record.usercase";
 import { recordRepository } from "../repositories/record.repositorie";
+import { GoogleService } from "../services/google.service";
 
 export async function recordRoutes(app: FastifyInstance) {
   // All record routes are protected
   app.addHook('onRequest', authMiddleware);
 
-  const uploadAudioUseCase = new UploadAudioUseCase(recordRepository);
+  const googleService = new GoogleService();
+  const uploadAudioUseCase = new UploadAudioUseCase(recordRepository, googleService);
 
   app.post('/records/upload-audio', async (request, reply) => {
     try {
@@ -17,7 +19,7 @@ export async function recordRoutes(app: FastifyInstance) {
       }
 
       const fileBuffer = await data.toBuffer();
-      const userId = request.user?.id; // Assumed from authMiddleware
+      const userId = request.user?.id;
 
       if (!userId) {
         return reply.status(401).send({ message: 'User not authenticated.' });

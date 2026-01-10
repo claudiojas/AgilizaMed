@@ -1,25 +1,52 @@
 import { RecordRepository } from '../repositories/record.repositorie';
-import { getDummyRecordData } from '../mocks/dummy-record-data';
+import { GoogleService } from '../services/google.service';
+import { z } from 'zod';
+
+// Zod schema to validate the structured data returned by the LLM
+const recordSchemaFromAI = z.object({
+    queixa_principal: z.string().nullable(),
+    hda: z.string().nullable(),
+    medicamentos_uso: z.array(z.string()).nullable().optional().default([]), // Allow null array and default to empty
+    alergias: z.array(z.string()).nullable().optional().default([]), // Allow null array and default to empty
+    exame_fisico_citado: z.string().nullable().optional(),
+    hipotese_diagnostica: z.string().nullable().optional(),
+    conduta_sugerida: z.string().nullable().optional(),
+});
+
 
 export class UploadAudioUseCase {
-  constructor(private recordRepository: RecordRepository) {}
+  constructor(
+    private recordRepository: RecordRepository,
+    private googleService: GoogleService,
+  ) {}
 
   async execute(audioBuffer: Buffer, userId: string) {
-    // --- Placeholder Logic ---
-    // In the future, this is where we will:
-    // 1. Send the audioBuffer to OpenAI Whisper API to get the transcript.
-    // 2. Send the transcript to a LLM (GPT-4o/Claude) to get structured JSON.
+    // 1. Transcribe audio using Google Cloud Speech-to-Text
+    const transcript = await this.googleService.transcribeAudio(audioBuffer);
+
+    if (!transcript) {
+      throw new Error("Audio transcription returned empty.");
+    }
+
+    // 2. Structure the transcript using Gemini
+    const structuredData = await this.googleService.structureText(transcript);
     
-    console.log(`Simulating AI processing for user ${userId} and audio of size ${audioBuffer.length} bytes.`);
+    // 3. Validate the AI-generated data
+    const validatedData = recordSchemaFromAI.parse(structuredData);
 
-    // 3. Get dummy record data from the mock file.
-    const dummyRecordData = getDummyRecordData(userId);
+    // 4. Prepare data for Prisma, ensuring non-nullable arrays are empty if AI returns null
+    const dataForPrisma = {
+      ...validatedData,
+      medicamentos_uso: validatedData.medicamentos_uso ?? [],
+      alergias: validatedData.alergias ?? [],
+    };
 
-    // 4. Save the dummy record to the database
-    const createdRecord = await this.recordRepository.createRecord(dummyRecordData);
+    // 5. Save the structured record to the database
+    const createdRecord = await this.recordRepository.createRecord({
+      ...dataForPrisma,
+      userId,
+    });
 
     return createdRecord;
   }
 }
-
-// TODO: Implement other Record Use Cases (e.g., GetRecordByIdUseCase, UpdateRecordUseCase, DeleteRecordUseCase)
