@@ -12,12 +12,12 @@ O público-alvo são médicos de consultório particular, clínicas populares e 
 
 - ✅ **Autenticação Segura:** Sistema de login com JWT para garantir que apenas médicos autorizados acessem os dados.
 - ✅ **Gerenciamento de Usuários (CRUD):** Endpoints completos para criar, ler, atualizar e deletar usuários (médicos).
-- 🚧 **Upload de Áudio da Consulta:** Endpoint para receber os arquivos de áudio gravados.
-- ⏳ **Transcrição Automática:** Integração com a API Whisper da OpenAI para transcrever o áudio em texto.
-- ⏳ **Estruturação com IA:** Uso de um LLM (GPT-4o/Claude) para analisar o texto e extrair informações em um formato JSON estruturado (Queixa, HDA, etc.).
-- ⏳ **Armazenamento de Prontuários:** Persistência dos prontuários estruturados no banco de dados.
+- ✅ **Gerenciamento de Pacientes:** Endpoints para criar e listar pacientes associados a um médico.
+- ✅ **Fluxo de Prontuários Inteligente:**
+    - **Processamento de Áudio:** Endpoint que recebe um áudio, transcreve e estrutura com IA, retornando um rascunho.
+    - **Persistência de Prontuário:** Endpoint que recebe o rascunho (revisado pelo médico) e o salva permanentemente.
 
-*(Legenda: ✅ Implementado, 🚧 Em Andamento, ⏳ Próximos Passos)*
+*(Legenda: ✅ Implementado)*
 
 ## Stack de Tecnologias
 
@@ -27,13 +27,14 @@ O público-alvo são médicos de consultório particular, clínicas populares e 
   - **Framework:** Fastify
   - **Linguagem:** TypeScript
   - **ORM:** Prisma
+  - **IA:** Google Cloud Speech-to-Text & Google Gemini
   - **Banco de Dados:** PostgreSQL (com Docker)
   - **Validação:** Zod
   - **Autenticação:** JWT (jsonwebtoken) & bcryptjs
 - **Frontend (`/apps/web`):**
-  - **Framework:** Next.js
+  - **Framework:** Vite + React
   - **Linguagem:** TypeScript
-  - **Estilização:** Tailwind CSS
+  - **Estilização:** Tailwind CSS & shadcn-ui
 
 ## Como Começar (Ambiente de Desenvolvimento)
 
@@ -49,7 +50,7 @@ Siga os passos abaixo para configurar e executar o projeto localmente.
 
 ```bash
 git clone <URL_DO_REPOSITORIO_AQUI>
-cd AgilizaMed
+cd agilizmed
 ```
 
 ### 2. Instalar Dependências
@@ -62,25 +63,26 @@ pnpm install
 
 ### 3. Configurar Variáveis de Ambiente (Backend)
 
-Navegue até a pasta da API, copie o arquivo de exemplo `.env.example` e preencha as variáveis, se necessário.
+Navegue até a pasta da API, copie o arquivo de exemplo `.env.example` para `.env` e preencha as variáveis, especialmente as credenciais da Google Cloud (`GOOGLE_API_KEY`, etc.).
 
 ```bash
 cd apps/api
 cp .env.example .env
 ```
-*Observação: As variáveis padrão no `.env.example` já são compatíveis com a configuração do `docker-compose.yml`.*
+*Observação: As variáveis de banco de dados no `.env.example` já são compatíveis com a configuração do `docker-compose.yml`.*
 
 ### 4. Iniciar o Banco de Dados
 
 Com o Docker em execução, inicie o container do PostgreSQL.
 
 ```bash
+cd apps/api # se não estiver no diretório
 docker-compose up -d
 ```
 
 ### 5. Aplicar as Migrações do Banco
 
-Este comando irá criar as tabelas `User` e `Record` no banco de dados.
+Este comando irá criar/atualizar as tabelas no banco de dados com base no schema do Prisma.
 
 ```bash
 pnpm exec prisma migrate dev
@@ -95,19 +97,38 @@ pnpm --parallel --filter "./apps/*" dev
 ```
 
 - O **Backend (API)** estará disponível em `http://localhost:3333`.
-- O **Frontend (Web)** estará disponível em `http://localhost:3000`.
+- O **Frontend (Web)** estará disponível em `http://localhost:5173`.
 
-## Endpoints da API (Atuais)
+## Endpoints da API
 
-- `POST /api/users`: Cria um novo usuário.
-- `POST /api/auth/login`: Autentica um usuário e retorna um token JWT.
+A base de todas as rotas é `http://localhost:3333/api`.
 
-### Rotas Protegidas (Requerem Token JWT)
+### Autenticação
+- `POST /auth/login`: Autentica um usuário e retorna um token JWT.
 
-- `GET /api/users`: Lista todos os usuários.
-- `GET /api/users/:id`: Busca um usuário pelo ID.
-- `PUT /api/users/:id`: Atualiza um usuário.
-- `DELETE /api/users/:id`: Deleta um usuário.
+### Usuários (Médicos)
+- `POST /users`: Cria um novo usuário.
+- `GET /users`: (Protegido) Lista todos os usuários.
+- `GET /users/:id`: (Protegido) Busca um usuário pelo ID.
+- `PUT /users/:id`: (Protegido) Atualiza um usuário.
+- `DELETE /users/:id`: (Protegido) Deleta um usuário.
+
+### Pacientes (Protegido)
+- `POST /patients`: Cria um novo paciente associado ao médico logado.
+- `GET /patients`: Lista todos os pacientes do médico logado.
+
+### Prontuários (Protegido)
+O fluxo de prontuários ocorre em duas etapas:
+
+1.  **`POST /records/process-audio`**
+    -   **Propósito:** Processa o áudio da consulta.
+    -   **Body:** `form-data` com um campo `file` contendo o arquivo de áudio.
+    -   **Retorna:** Um `JSON` com o "rascunho" do prontuário, sem salvar no banco.
+
+2.  **`POST /records`**
+    -   **Propósito:** Salva o prontuário permanentemente.
+    -   **Body:** Um `JSON` contendo os dados do prontuário (revisados pelo médico) e o `patientId`.
+    -   **Retorna:** O objeto completo do prontuário salvo.
 
 Para acessar uma rota protegida, inclua o token no cabeçalho da requisição:
 `Authorization: Bearer <seu_token_jwt>`

@@ -9,6 +9,7 @@ export interface IRecordCreate {
     hipotese_diagnostica?: string;
     conduta_sugerida?: string;
     userId: string; // The ID of the user (doctor) who created the record
+    patientId: string; // The ID of the patient to whom the record belongs
 }
 
 export interface IRecordUpdate {

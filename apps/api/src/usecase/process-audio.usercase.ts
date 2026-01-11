@@ -1,4 +1,3 @@
-import { RecordRepository } from '../repositories/record.repositorie';
 import { GoogleService } from '../services/google.service';
 import { z } from 'zod';
 
@@ -14,13 +13,12 @@ const recordSchemaFromAI = z.object({
 });
 
 
-export class UploadAudioUseCase {
+export class ProcessAudioUseCase {
   constructor(
-    private recordRepository: RecordRepository,
     private googleService: GoogleService,
   ) {}
 
-  async execute(audioBuffer: Buffer, userId: string) {
+  async execute(audioBuffer: Buffer) {
     // 1. Transcribe audio using Google Cloud Speech-to-Text
     const transcript = await this.googleService.transcribeAudio(audioBuffer);
 
@@ -34,19 +32,6 @@ export class UploadAudioUseCase {
     // 3. Validate the AI-generated data
     const validatedData = recordSchemaFromAI.parse(structuredData);
 
-    // 4. Prepare data for Prisma, ensuring non-nullable arrays are empty if AI returns null
-    const dataForPrisma = {
-      ...validatedData,
-      medicamentos_uso: validatedData.medicamentos_uso ?? [],
-      alergias: validatedData.alergias ?? [],
-    };
-
-    // 5. Save the structured record to the database
-    const createdRecord = await this.recordRepository.createRecord({
-      ...dataForPrisma,
-      userId,
-    });
-
-    return createdRecord;
+    return validatedData;
   }
 }

@@ -11,26 +11,44 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String    @id @default(uuid())
+  email     String    @unique
   name      String
   password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  records   Record[]  @relation("UserRecords")
+  patients  Patient[]
+}
+
+model Patient {
+  id        String    @id @default(uuid())
+  name      String
+  email     String?   @unique
+  phone     String?
+  birthDate DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   records   Record[]
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
 }
 
 model Record {
-  id                    String    @id @default(uuid())
-  queixa_principal      String
-  hda                   String    @db.Text
-  medicamentos_uso      String[]
-  alergias              String[]
-  exame_fisico_citado   String?
-  hipotese_diagnostica  String?
-  conduta_sugerida      String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String   @id @default(uuid())
+  queixa_principal     String
+  hda                  String   @db.Text
+  medicamentos_uso     String[]
+  alergias             String[]
+  exame_fisico_citado  String?
+  hipotese_diagnostica String?
+  conduta_sugerida     String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  userId  String
+  user    User   @relation(name: "UserRecords", fields: [userId], references: [id], onDelete: Cascade)
+  
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
 }

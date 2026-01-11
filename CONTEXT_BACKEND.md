@@ -3,63 +3,54 @@
 Este documento resume o progresso técnico e as decisões de arquitetura tomadas durante o desenvolvimento do projeto AgilizMed.
 
 ## 1. Estrutura do Projeto
-
-- **Monorepo:** O projeto foi configurado como um monorepo gerenciado pelo `pnpm workspaces`.
-- **Estrutura de Diretórios:**
-  - `apps/`: Contém as aplicações principais.
-    - `api/`: O backend da aplicação (Node.js/Fastify).
-    - `web/`: O frontend da aplicação (Next.js).
-  - `packages/`: Pretendido para pacotes compartilhados.
-  - `apps/api/src/mocks/`: Diretório para armazenar dados mockados para testes e placeholders.
+*(Sem alterações nesta seção)*
+- **Monorepo:** `pnpm workspaces`.
+- **Estrutura de Diretórios:** `apps/api` e `apps/web`.
 
 ## 2. Backend (`apps/api`)
 
-A API foi construída seguindo um padrão de arquitetura em camadas para garantir a separação de responsabilidades, testabilidade e manutenibilidade.
+A API foi construída seguindo um padrão de arquitetura em camadas (Router, Use Case, Repository, Interface) para garantir a separação de responsabilidades e manutenibilidade.
 
 ### Tecnologias Principais:
 - **Framework:** Fastify com TypeScript.
-- **Execução em Desenvolvimento:** `tsx` para hot-reload.
-- **ORM:** Prisma para interação com o banco de dados.
-- **Banco de Dados:** PostgreSQL, gerenciado via Docker Compose.
-- **Validação:** Zod para validação de dados de entrada.
-- **Autenticação:** JWT (JSON Web Tokens) com `jsonwebtoken` e `bcryptjs` para hashing de senhas.
-- **Upload de Arquivos:** `@fastify/multipart`.
-- **Serviços de IA:** `@google/generative-ai` (Gemini) e `@google-cloud/speech` (Speech-to-Text).
+- **ORM:** Prisma.
+- **Banco de Dados:** PostgreSQL (Docker).
+- **Validação:** Zod.
+- **Autenticação:** JWT.
+- **IA:** Google Cloud Speech-to-Text & Gemini.
 
 ### Arquitetura em Camadas:
-1.  **Router (`routes/*.router.ts`):** Camada responsável por receber as requisições HTTP, delegar para os Use Cases e formatar as respostas.
-2.  **Use Case (`usecase/*.usercase.ts`):** Contém a lógica de negócio principal da aplicação. Orquestra as operações, realiza validações com Zod e manipula a lógica de segurança.
-3.  **Repository (`repositories/*.repositorie.ts`):** Camada de acesso a dados. É a única camada que interage diretamente com o Prisma Client.
-4.  **Interfaces (`interfaces/*.interfaces.ts`):** Contratos que definem a estrutura dos dados e os métodos para cada recurso (`User`, `Record`).
-5.  **Serviços Externos (`services/*.service.ts`):** Encapsula a interação com APIs externas (ex: `google.service.ts`).
+*(Sem alterações nesta seção)*
 
 ### Funcionalidades Implementadas:
 
-- **Gerenciamento de Usuários (CRUD Completo):**
-  - Endpoints `POST`, `GET`, `PUT`, `DELETE` para `/api/users`.
+- **Gerenciamento de Usuários (CRUD Básico):**
+  - Endpoints para criar, ler, atualizar e deletar usuários.
 
 - **Autenticação:**
-  - `POST /api/auth/login`: Endpoint de login que retorna um JWT.
-  - **Middleware de Autorização:** Hook que protege as rotas que necessitam de autenticação.
+  - `POST /api/auth/login` com retorno de token JWT.
+  - Middleware de autorização protegendo todas as rotas de negócio.
 
-- **Gerenciamento de Prontuários (Funcionalidade Principal Implementada):**
-  - `POST /api/records/upload-audio`: Endpoint protegido para upload de arquivos de áudio.
-  - **Integração Completa com IA:** O áudio é transcrevido pela **Google Cloud Speech-to-Text** e, em seguida, estruturado em JSON pelo **Google Gemini** (conforme o System Prompt), e finalmente salvo no banco de dados.
+- **Gerenciamento de Pacientes:**
+  - Adicionado modelo `Patient` ao `schema.prisma`, com relação obrigatória ao `User`.
+  - `POST /api/patients`: Endpoint para criar um novo paciente associado ao médico logado.
+  - `GET /api/patients`: Endpoint para listar todos os pacientes do médico logado.
+  - Implementado o ciclo completo de Interface, Repositório, Use Case e Rota.
+
+- **Fluxo de Prontuários em Duas Etapas:**
+  1.  `POST /api/records/process-audio`: Endpoint que recebe um arquivo de áudio, o envia para as APIs do Google (Speech-to-Text e Gemini) e retorna um **rascunho JSON** do prontuário, sem persistir no banco.
+  2.  `POST /api/records`: Endpoint que recebe o rascunho JSON (revisado pelo frontend), valida os dados com Zod (incluindo o `patientId` obrigatório) e **salva o prontuário final** no banco, associando-o ao médico e ao paciente.
 
 ### Correção de Bugs:
-- **Deleção de Usuário:** Corrigido um erro de violação de chave estrangeira ao deletar um usuário que possuía prontuários. A solução foi adicionar a regra `onDelete: Cascade` ao schema do Prisma e aplicar uma nova migração.
-- **Integração Google AI:** Resolvidos problemas de configuração de modelo e formato de áudio para Speech-to-Text, além de problemas de nomeclatura de modelo Gemini.
+- **Deleção de Usuário:** Adicionado `onDelete: Cascade` ao schema do Prisma para evitar erros de chave estrangeira.
+- **Dessincronização do Prisma Client:** Resolvido um problema recorrente onde o Prisma Client gerado não correspondia ao `schema.prisma` (ex: esperava o campo `doctor` em vez de `user`). A solução foi forçar a regeneração com `pnpm exec prisma generate`.
 
 ### Refatorações de Código:
-- O arquivo de interface de usuário foi renomeado de `methods.interfaces.ts` para `user.interfaces.ts` para melhor consistência.
-- Os dados mockados do `UploadAudioUseCase` foram movidos para um diretório `src/mocks/` para separar dados de teste da lógica de produção.
-- `OpenAIService` e suas dependências foram removidos e substituídos por `GoogleService`.
-- O schema Zod para `Record` foi ajustado para aceitar valores `null` ou `[]` como retorno da IA.
+- **Validação com Zod:** As rotas de criação de prontuário e paciente foram robustecidas com schemas Zod para validar o corpo da requisição, eliminando a necessidade de `as any` e melhorando a segurança e o feedback de erros.
+- **Consistência de Nomenclatura:** Adotada uma nomenclatura consistente nas camadas da arquitetura para os novos recursos.
 
 ### Próximos Passos:
-- **Implementar CRUD de Pacientes:** Adicionar o modelo `Patient` ao banco de dados e construir toda a camada de API (Interface, Repositório, Use Case, Rotas) para o gerenciamento de pacientes.
-- **Refatorar Fluxo de Prontuário (Processar e Salvar):** Modificar o fluxo de criação de prontuário para um modelo de duas etapas, conforme discutido:
-  1. Uma rota para processar o áudio e retornar um "rascunho" JSON.
-  2. Uma segunda rota para receber o rascunho (editado ou não) e salvá-lo permanentemente.
-- **Implementar CRUD de Prontuários:** Readicionar e finalizar as rotas `GET`, `PUT` e `DELETE` para o recurso `Record`.
+- **Finalizar CRUD de Pacientes:** Implementar rotas `GET /:id`, `PUT /:id` e `DELETE /:id` para o recurso `Patient`.
+- **Finalizar CRUD de Prontuários:** Implementar rotas `GET`, `PUT` e `DELETE` para o recurso `Record`.
 - **Documentação de API (Swagger/OpenAPI):** Gerar documentação interativa para os endpoints.
+- **Testes:** Escrever testes unitários e de integração para os fluxos implementados.

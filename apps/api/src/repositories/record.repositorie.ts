@@ -4,13 +4,18 @@ import { Record } from "@prisma/client";
 
 export class RecordRepository implements IRecordMethods {
     async createRecord(data: IRecordCreate): Promise<Record> {
-        const { userId, ...restOfData } = data;
+        const { userId, patientId, ...restOfData } = data;
         return prisma.record.create({
             data: {
                 ...restOfData,
                 user: {
                     connect: {
                         id: userId,
+                    },
+                },
+                patient: {
+                    connect: {
+                        id: patientId,
                     },
                 },
             },
