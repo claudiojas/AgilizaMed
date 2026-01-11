@@ -57,6 +57,9 @@ A API foi construída seguindo um padrão de arquitetura em camadas para garanti
 - O schema Zod para `Record` foi ajustado para aceitar valores `null` ou `[]` como retorno da IA.
 
 ### Próximos Passos:
-- Implementar o restante do CRUD para o recurso `Record` (listar, buscar por ID, atualizar e deletar prontuários).
-- Integrar o frontend (`apps/web`) com o backend.
-- Avaliar a necessidade de uma camada de conversão de áudio (FFmpeg) para suportar múltiplos formatos de entrada de áudio.
+- **Implementar CRUD de Pacientes:** Adicionar o modelo `Patient` ao banco de dados e construir toda a camada de API (Interface, Repositório, Use Case, Rotas) para o gerenciamento de pacientes.
+- **Refatorar Fluxo de Prontuário (Processar e Salvar):** Modificar o fluxo de criação de prontuário para um modelo de duas etapas, conforme discutido:
+  1. Uma rota para processar o áudio e retornar um "rascunho" JSON.
+  2. Uma segunda rota para receber o rascunho (editado ou não) e salvá-lo permanentemente.
+- **Implementar CRUD de Prontuários:** Readicionar e finalizar as rotas `GET`, `PUT` e `DELETE` para o recurso `Record`.
+- **Documentação de API (Swagger/OpenAPI):** Gerar documentação interativa para os endpoints.

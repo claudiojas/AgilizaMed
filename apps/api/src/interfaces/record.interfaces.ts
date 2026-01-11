@@ -1,4 +1,4 @@
-import { Record } from "@prisma/client";
+import type { Record } from "../generated/prisma/client";
 
 export interface IRecordCreate {
     queixa_principal: string;
