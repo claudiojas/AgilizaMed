@@ -22,7 +22,7 @@ O projeto deve seguir a stack moderna do ecossistema JS/TS, priorizando seguran�
     * **Segurança:** Criptografia de ponta a ponta (AES-256) para dados sensíveis (LGPD/HIPAA compliance).
 * **Inteligência Artificial (IA):**
     * **Transcrição (STT):** OpenAI Whisper API (modelo `whisper-1`).
-    * **Estruturação (LLM):** OpenAI GPT-4o ou Claude 3.5 Sonnet (via API).
+    * **Estruturação (LLM):** Google Gemini API (modelo `gemini-pro-latest`).
 
 ---
 

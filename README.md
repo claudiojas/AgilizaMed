@@ -27,7 +27,7 @@ O público-alvo são médicos de consultório particular, clínicas populares e 
   - **Framework:** Fastify
   - **Linguagem:** TypeScript
   - **ORM:** Prisma
-  - **IA:** Google Cloud Speech-to-Text & Google Gemini
+  - **IA:** OpenAI Whisper & Google Gemini
   - **Banco de Dados:** PostgreSQL (com Docker)
   - **Validação:** Zod
   - **Autenticação:** JWT (jsonwebtoken) & bcryptjs
@@ -63,7 +63,7 @@ pnpm install
 
 ### 3. Configurar Variáveis de Ambiente (Backend)
 
-Navegue até a pasta da API, copie o arquivo de exemplo `.env.example` para `.env` e preencha as variáveis, especialmente as credenciais da Google Cloud (`GOOGLE_API_KEY`, etc.).
+Navegue até a pasta da API, copie o arquivo de exemplo `.env.example` para `.env` e preencha as variáveis, especialmente a `GOOGLE_API_KEY` e a `OPENAI_API_KEY`.
 
 ```bash
 cd apps/api

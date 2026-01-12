@@ -17,7 +17,7 @@ A API foi construída seguindo um padrão de arquitetura em camadas (Router, Use
 - **Banco de Dados:** PostgreSQL (Docker).
 - **Validação:** Zod.
 - **Autenticação:** JWT.
-- **IA:** Google Cloud Speech-to-Text & Gemini.
+- **IA:** OpenAI Whisper & Google Gemini.
 
 ### Arquitetura em Camadas:
 *(Sem alterações nesta seção)*
@@ -38,16 +38,22 @@ A API foi construída seguindo um padrão de arquitetura em camadas (Router, Use
   - Implementado o ciclo completo de Interface, Repositório, Use Case e Rota.
 
 - **Fluxo de Prontuários em Duas Etapas:**
-  1.  `POST /api/records/process-audio`: Endpoint que recebe um arquivo de áudio, o envia para as APIs do Google (Speech-to-Text e Gemini) e retorna um **rascunho JSON** do prontuário, sem persistir no banco.
-  2.  `POST /api/records`: Endpoint que recebe o rascunho JSON (revisado pelo frontend), valida os dados com Zod (incluindo o `patientId` obrigatório) e **salva o prontuário final** no banco, associando-o ao médico e ao paciente.
+  1.  `POST /api/records/process-audio`: Endpoint que recebe um arquivo de áudio, o transcreve com **OpenAI Whisper** e o estrutura com **Google Gemini**, retornando um **rascunho JSON**.
+  2.  `POST /api/records`: Endpoint que recebe o rascunho JSON (revisado pelo frontend), valida os dados com Zod (incluindo o `patientId` obrigatório) e **salva o prontuário final** no banco.
 
 ### Correção de Bugs:
 - **Deleção de Usuário:** Adicionado `onDelete: Cascade` ao schema do Prisma para evitar erros de chave estrangeira.
-- **Dessincronização do Prisma Client:** Resolvido um problema recorrente onde o Prisma Client gerado não correspondia ao `schema.prisma` (ex: esperava o campo `doctor` em vez de `user`). A solução foi forçar a regeneração com `pnpm exec prisma generate`.
+- **Dessincronização do Prisma Client:** Resolvido um problema recorrente onde o Prisma Client gerado não correspondia ao `schema.prisma`. A solução foi forçar a regeneração com `pnpm exec prisma generate`.
+- **Debugging do Fluxo de IA:**
+  - **Problema (Google STT):** A API síncrona do Google limitava áudios a 1 min. A API assíncrona (`longRunningRecognize`) exigia o uso do Google Cloud Storage (GCS), considerado inviável (custo/complexidade) para a fase atual.
+  - **Solução (Pivô para Whisper):** Substituímos o Google STT pelo OpenAI Whisper, que suporta áudios de até 25MB via upload direto, simplificando a arquitetura e evitando custos de armazenamento.
+  - **Correção de Autenticação e Cota (Whisper):** Guiamos o usuário na correção da chave de API (`401`) e na adição de créditos para resolver o erro de cota (`429`).
+  - **Correção do Modelo (Gemini):** O erro `404 Not Found` na etapa de estruturação foi resolvido utilizando o nome de modelo `gemini-pro-latest`.
+  - **Correção do Upload (Fastify):** Aumentamos o limite de tamanho de arquivo do Fastify para 25MB para acomodar os áudios.
 
 ### Refatorações de Código:
-- **Validação com Zod:** As rotas de criação de prontuário e paciente foram robustecidas com schemas Zod para validar o corpo da requisição, eliminando a necessidade de `as any` e melhorando a segurança e o feedback de erros.
-- **Consistência de Nomenclatura:** Adotada uma nomenclatura consistente nas camadas da arquitetura para os novos recursos.
+- **Validação com Zod:** As rotas de criação de prontuário e paciente foram robustecidas com schemas Zod.
+- **Abordagem Híbrida de IA:** O `GoogleService` foi refatorado para orquestrar a chamada a dois provedores de IA distintos (OpenAI para transcrição, Google para estruturação).
 
 ### Próximos Passos:
 - **Finalizar CRUD de Pacientes:** Implementar rotas `GET /:id`, `PUT /:id` e `DELETE /:id` para o recurso `Patient`.

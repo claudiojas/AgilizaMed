@@ -33,8 +33,12 @@ export class App {
             methods: ['POST', 'DELETE', 'GET', 'PUT', 'PATCH']
         });
 
-        // Register Multipart plugin
-        this.app.register(multipart);
+        // Register Multipart plugin with increased file size limit
+        this.app.register(multipart, {
+            limits: {
+                fileSize: 1024 * 1024 * 25, // 25MB
+            }
+        });
 
         // Register User Routes
         this.app.register(userRoutes, { prefix: '/api' });
