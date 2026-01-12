@@ -41,6 +41,18 @@ Este documento resume o progresso técnico e as decisões de arquitetura tomadas
 - Exibe o nome do paciente associado a cada prontuário, enriquecendo a listagem.
 - Implementa um drawer (`RecordDetailDrawer`) para visualização rápida dos detalhes do prontuário ao clicar em um card.
 
+### Página de Prontuários (`Records.tsx`)
+- Refatorada para remover dados mocados e conectar ao backend (`GET /api/records`).
+- Exibe a lista completa de prontuários do usuário com busca pelo nome do paciente.
+- Reutiliza o `RecordDetailDrawer` para uma experiência de usuário consistente.
+
+### Componentes de UI
+- **ConsultationCard.tsx:** Adicionada lógica defensiva para evitar quebras caso um `status` de prontuário seja inválido, exibindo um estado "Desconhecido" como fallback.
+
+### Página de Configurações (`Settings.tsx`)
+- O card de perfil tornou-se interativo e agora exibe os dados dinâmicos do usuário logado.
+- Corrigido um bug de aninhamento de HTML inválido (botão dentro de botão) na renderização da lista de opções.
+
 ## 3. Limpeza e Branding
 *(Sem alterações nesta seção)*
 
