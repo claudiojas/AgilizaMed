@@ -33,6 +33,12 @@ export class PatientRepository implements IPatientMethods {
             }
         });
     }
+
+    async getPatientById(id: string): Promise<Patient | null> {
+        return prisma.patient.findUnique({
+            where: { id },
+        });
+    }
 }
 
 export const patientRepository = new PatientRepository();

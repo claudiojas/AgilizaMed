@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { patientRepository } from "../repositories/patient.repositorie";
-import { CreatePatientUseCase, ListPatientsUseCase } from "../usecase/patient.usercase";
+import { CreatePatientUseCase, ListPatientsUseCase, GetPatientByIdUseCase } from "../usecase/patient.usercase";
 
 export async function patientRoutes(app: FastifyInstance) {
     // All patient routes are protected
@@ -10,6 +10,7 @@ export async function patientRoutes(app: FastifyInstance) {
 
     const createPatientUseCase = new CreatePatientUseCase(patientRepository);
     const listPatientsUseCase = new ListPatientsUseCase(patientRepository);
+    const getPatientByIdUseCase = new GetPatientByIdUseCase(patientRepository); // Instantiate new use case
 
     // Zod schema for validating the request body when creating a patient
     const createPatientBodySchema = z.object({
@@ -52,6 +53,29 @@ export async function patientRoutes(app: FastifyInstance) {
             return reply.status(200).send(patients);
         } catch (error) {
             console.error('Error listing patients:', error);
+            return reply.status(500).send({ message: 'Internal Server Error' });
+        }
+    });
+
+    // Route to get a patient by ID
+    app.get('/patients/:id', async (request, reply) => {
+        try {
+            const userId = request.user?.id;
+            if (!userId) {
+                return reply.status(401).send({ message: 'User not authenticated.' });
+            }
+
+            const { id } = request.params as { id: string };
+
+            const patient = await getPatientByIdUseCase.execute(id, userId);
+
+            if (!patient) {
+                return reply.status(404).send({ message: 'Patient not found or not accessible.' });
+            }
+
+            return reply.status(200).send(patient);
+        } catch (error) {
+            console.error('Error getting patient by ID:', error);
             return reply.status(500).send({ message: 'Internal Server Error' });
         }
     });

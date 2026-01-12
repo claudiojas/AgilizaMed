@@ -3,6 +3,7 @@ import { z } from "zod";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { ProcessAudioUseCase } from "../usecase/process-audio.usercase";
 import { CreateRecordUseCase } from "../usecase/create-record.usercase";
+import { ListRecordsByUserIdUseCase } from "../usecase/list-records.usercase"; // New import
 import { recordRepository } from "../repositories/record.repositorie";
 import { GoogleService } from "../services/google.service";
 
@@ -13,6 +14,7 @@ export async function recordRoutes(app: FastifyInstance) {
   const googleService = new GoogleService();
   const processAudioUseCase = new ProcessAudioUseCase(googleService);
   const createRecordUseCase = new CreateRecordUseCase(recordRepository);
+  const listRecordsByUserIdUseCase = new ListRecordsByUserIdUseCase(recordRepository); // New use case instance
 
   // Route to process audio and return a structured JSON draft
   app.post('/records/process-audio', async (request, reply) => {
@@ -68,6 +70,22 @@ export async function recordRoutes(app: FastifyInstance) {
       console.error(error);
       return reply.status(500).send({ message: 'Internal Server Error' });
     }
+  });
+
+  // Route to list all records for the authenticated user
+  app.get('/records', async (request, reply) => {
+      try {
+          const userId = request.user?.id;
+          if (!userId) {
+              return reply.status(401).send({ message: 'User not authenticated.' });
+          }
+
+          const records = await listRecordsByUserIdUseCase.execute(userId);
+          return reply.status(200).send(records);
+      } catch (error) {
+          console.error('Error listing records:', error);
+          return reply.status(500).send({ message: 'Internal Server Error' });
+      }
   });
 }
 

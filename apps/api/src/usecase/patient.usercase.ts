@@ -33,3 +33,19 @@ export class ListPatientsUseCase {
         return patients;
     }
 }
+
+// --- Get Patient By ID Use Case ---
+export class GetPatientByIdUseCase {
+    constructor(private patientRepository: PatientRepository) {}
+
+    async execute(patientId: string, userId: string) {
+        const patient = await this.patientRepository.getPatientById(patientId);
+
+        if (!patient || patient.userId !== userId) {
+            // Ensure patient belongs to the authenticated user
+            return null;
+        }
+
+        return patient;
+    }
+}

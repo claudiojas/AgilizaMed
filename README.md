@@ -116,9 +116,12 @@ A base de todas as rotas é `http://localhost:3333/api`.
 ### Pacientes (Protegido)
 - `POST /patients`: Cria um novo paciente associado ao médico logado.
 - `GET /patients`: Lista todos os pacientes do médico logado.
+- `GET /patients/:id`: Busca um paciente específico pelo seu ID.
 
 ### Prontuários (Protegido)
-O fluxo de prontuários ocorre em duas etapas:
+- `GET /records`: Lista todos os prontuários do médico logado.
+
+O fluxo de criação de prontuários ocorre em duas etapas:
 
 1.  **`POST /records/process-audio`**
     -   **Propósito:** Processa o áudio da consulta.

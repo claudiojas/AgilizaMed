@@ -32,31 +32,35 @@ A API foi construída seguindo um padrão de arquitetura em camadas (Router, Use
   - Middleware de autorização protegendo todas as rotas de negócio.
 
 - **Gerenciamento de Pacientes:**
-  - Adicionado modelo `Patient` ao `schema.prisma`, com relação obrigatória ao `User`.
-  - `POST /api/patients`: Endpoint para criar um novo paciente associado ao médico logado.
-  - `GET /api/patients`: Endpoint para listar todos os pacientes do médico logado.
+  - Adicionado modelo `Patient` ao `schema.prisma`.
+  - `POST /api/patients`: Endpoint para criar um novo paciente.
+  - `GET /api/patients`: Endpoint para listar todos os pacientes do médico.
+  - `GET /api/patients/:id`: Endpoint para buscar um paciente específico.
   - Implementado o ciclo completo de Interface, Repositório, Use Case e Rota.
 
-- **Fluxo de Prontuários em Duas Etapas:**
-  1.  `POST /api/records/process-audio`: Endpoint que recebe um arquivo de áudio, o transcreve com **OpenAI Whisper** e o estrutura com **Google Gemini**, retornando um **rascunho JSON**.
-  2.  `POST /api/records`: Endpoint que recebe o rascunho JSON (revisado pelo frontend), valida os dados com Zod (incluindo o `patientId` obrigatório) e **salva o prontuário final** no banco.
+- **Fluxo de Prontuários e Gerenciamento:**
+  - `GET /api/records`: Endpoint para listar todos os prontuários do médico (incluindo dados do paciente).
+  - **Criação em Duas Etapas:**
+    1.  `POST /api/records/process-audio`: Endpoint que transcreve com **OpenAI Whisper** e estrutura com **Google Gemini**, retornando um **rascunho JSON**.
+    2.  `POST /api/records`: Endpoint que recebe o rascunho, valida com Zod e **salva o prontuário final**.
 
 ### Correção de Bugs:
-- **Deleção de Usuário:** Adicionado `onDelete: Cascade` ao schema do Prisma para evitar erros de chave estrangeira.
-- **Dessincronização do Prisma Client:** Resolvido um problema recorrente onde o Prisma Client gerado não correspondia ao `schema.prisma`. A solução foi forçar a regeneração com `pnpm exec prisma generate`.
+- **Deleção de Usuário:** Adicionado `onDelete: Cascade` ao schema do Prisma.
+- **Dessincronização do Prisma Client:** Resolvido problema de cliente gerado não corresponder ao `schema.prisma` com `pnpm exec prisma generate`.
 - **Debugging do Fluxo de IA:**
-  - **Problema (Google STT):** A API síncrona do Google limitava áudios a 1 min. A API assíncrona (`longRunningRecognize`) exigia o uso do Google Cloud Storage (GCS), considerado inviável (custo/complexidade) para a fase atual.
-  - **Solução (Pivô para Whisper):** Substituímos o Google STT pelo OpenAI Whisper, que suporta áudios de até 25MB via upload direto, simplificando a arquitetura e evitando custos de armazenamento.
-  - **Correção de Autenticação e Cota (Whisper):** Guiamos o usuário na correção da chave de API (`401`) e na adição de créditos para resolver o erro de cota (`429`).
-  - **Correção do Modelo (Gemini):** O erro `404 Not Found` na etapa de estruturação foi resolvido utilizando o nome de modelo `gemini-pro-latest`.
-  - **Correção do Upload (Fastify):** Aumentamos o limite de tamanho de arquivo do Fastify para 25MB para acomodar os áudios.
+  - **Problema (Google STT):** Limite de 1 min na API síncrona e requisito de GCS na assíncrona.
+  - **Solução (Pivô para Whisper):** Substituição pelo OpenAI Whisper para suportar áudios longos via upload direto.
+  - **Correção de Autenticação e Cota (Whisper):** Resolução dos erros `401` e `429`.
+  - **Correção do Modelo (Gemini):** Correção do erro `404` utilizando o nome `gemini-pro-latest`.
+  - **Correção do Upload (Fastify):** Aumento do limite de tamanho de arquivo para 25MB.
 
 ### Refatorações de Código:
-- **Validação com Zod:** As rotas de criação de prontuário e paciente foram robustecidas com schemas Zod.
-- **Abordagem Híbrida de IA:** O `GoogleService` foi refatorado para orquestrar a chamada a dois provedores de IA distintos (OpenAI para transcrição, Google para estruturação).
+- **Validação com Zod:** As rotas de criação foram robustecidas com schemas Zod.
+- **Abordagem Híbrida de IA:** O `GoogleService` foi refatorado para usar OpenAI (transcrição) e Google (estruturação).
+- **Melhora de Tipagem:** Introduzido o tipo `RecordWithPatient` no backend para garantir a segurança de tipo ao retornar prontuários com dados de pacientes incluídos.
 
 ### Próximos Passos:
-- **Finalizar CRUD de Pacientes:** Implementar rotas `GET /:id`, `PUT /:id` e `DELETE /:id` para o recurso `Patient`.
-- **Finalizar CRUD de Prontuários:** Implementar rotas `GET`, `PUT` e `DELETE` para o recurso `Record`.
-- **Documentação de API (Swagger/OpenAPI):** Gerar documentação interativa para os endpoints.
-- **Testes:** Escrever testes unitários e de integração para os fluxos implementados.
+- **Finalizar CRUD de Pacientes:** Implementar rotas `PUT /:id` e `DELETE /:id`.
+- **Finalizar CRUD de Prontuários:** Implementar rotas `GET /:id`, `PUT /:id` e `DELETE /:id`.
+- **Documentação de API (Swagger/OpenAPI):** Gerar documentação interativa.
+- **Testes:** Escrever testes unitários e de integração.

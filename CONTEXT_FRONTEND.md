@@ -14,28 +14,40 @@ Este documento resume o progresso técnico e as decisões de arquitetura tomadas
 ## 2. Funcionalidades Implementadas
 
 ### Fluxo de Autenticação
-- **Gerenciamento de Estado:** `AuthContext` (`src/context/AuthContext.tsx`) gerencia o estado de autenticação (token, dados do usuário) em toda a aplicação.
-- **Persistência:** O token JWT é persistido no `localStorage` do navegador.
-- **Páginas de Login e Cadastro:** As páginas `Login.tsx` e `SignUp.tsx` estão conectadas aos endpoints do backend para criar usuários e fazer login.
-- **Rotas Protegidas:** O componente `ProtectedRoute.tsx` garante que apenas usuários autenticados possam acessar as páginas internas do dashboard.
-- **Logout:** A funcionalidade de logout foi implementada na página de `Settings.tsx`.
+- **Gerenciamento de Estado:** `AuthContext` com `localStorage` para persistência do token JWT.
+- **Páginas:** `Login.tsx` e `SignUp.tsx` funcionais.
+- **Rotas Protegidas:** `ProtectedRoute` implementado para as páginas internas.
 
-### Estrutura de Páginas e Navegação
-- **Páginas:** A estrutura de páginas para `Dashboard`, `Records`, `Settings`, `Consultation` e `Patients` foi criada.
-- **Navegação Principal:** O componente `BottomNav.tsx` foi atualizado para incluir um link para a página `/patients`, resolvendo um "beco sem saída" na navegação.
+### Gerenciamento de Pacientes (`Patients.tsx`)
+- Conexão completa com o backend para listar (`GET /api/patients`) e criar (`POST /api/patients`) pacientes.
+- Formulário de criação em `Dialog`, com campos para nome, email, telefone e data de nascimento (com date picker).
+- UI de listagem com estados de loading, erro e lista vazia.
+- Botão "Iniciar Consulta" que navega para a página de consulta com o ID do paciente (`/consultation/:patientId`).
+
+### Fluxo de Criação de Prontuário
+- **Página de Consulta (`Consultation.tsx`):**
+  - Recebe o `patientId` da URL.
+  - Implementa a gravação de áudio com `MediaRecorder` e feedback visual.
+  - Envia o áudio para o backend (`POST /api/records/process-audio`).
+  - Ao receber o rascunho, navega para a página de revisão, passando os dados via estado de navegação.
+- **Página de Revisão (`ReviewRecord.tsx`):**
+  - Página criada para o fluxo de "rascunho e confirmação".
+  - Busca e exibe o nome do paciente (`GET /api/patients/:id`) para melhor UX.
+  - Apresenta os dados do rascunho em um formulário totalmente editável.
+  - Permite salvar o prontuário final (`POST /api/records`) ou regravar (volta para a consulta).
+
+### Dashboard (`Dashboard.tsx`)
+- Busca e exibe a lista dos últimos prontuários do médico (`GET /api/records`).
+- Exibe o nome do paciente associado a cada prontuário, enriquecendo a listagem.
+- Implementa um drawer (`RecordDetailDrawer`) para visualização rápida dos detalhes do prontuário ao clicar em um card.
 
 ## 3. Limpeza e Branding
-- O template inicial do frontend foi limpo, removendo referências a "Lovable".
-- O título e metadados da aplicação foram atualizados para "AgilizMed".
+*(Sem alterações nesta seção)*
 
 ## 4. Próximos Passos Prioritários
 
-- **Refatorar Fluxo de Gravação:**
-    1.  A página `Consultation.tsx` deve ser atualizada para chamar a nova rota `POST /api/records/process-audio` e receber o rascunho JSON.
-    2.  Ao receber o rascunho, a aplicação deve navegar para uma nova página, **`ReviewRecord.tsx`**.
-- **Criar Página de Revisão (`ReviewRecord.tsx`):**
-    1. Esta nova página receberá os dados do rascunho.
-    2. Exibirá os dados em um formulário editável.
-    3. Terá um botão "Salvar" que fará a chamada final para `POST /api/records`, enviando o prontuário para ser salvo permanentemente.
-    4. Terá um botão "Regravar", que navegará de volta para a página de `Consultation` para uma nova tentativa.
-- **Conectar Listagem de Pacientes:** A página `Patients.tsx` deve ser conectada ao backend para listar e criar pacientes reais.
+- **Finalizar CRUD:** Implementar as funcionalidades de **edição** e **exclusão** para Pacientes e Prontuários.
+- **Melhorar UX:**
+    - Adicionar paginação na lista de prontuários e pacientes.
+    - Implementar a funcionalidade de busca de pacientes.
+- **Testes:** Escrever testes de componentes e de integração para os fluxos principais (autenticação, criação de paciente, criação de prontuário).

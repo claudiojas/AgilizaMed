@@ -40,6 +40,12 @@ export class RecordRepository implements IRecordMethods {
     async getAllRecordsByUserId(userId: string): Promise<Record[]> {
         return prisma.record.findMany({
             where: { userId },
+            include: {
+                patient: true, // Include the patient relation
+            },
+            orderBy: {
+                createdAt: 'desc', // Order by creation date, newest first
+            }
         });
     }
 

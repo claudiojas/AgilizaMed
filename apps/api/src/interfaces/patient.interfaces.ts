@@ -18,5 +18,6 @@ export interface IPatientUpdate {
 export interface IPatientMethods {
     createPatient(data: IPatientCreate): Promise<Patient>;
     getAllPatientsByUserId(userId: string): Promise<Patient[]>;
-    // Futuramente: getPatientById, updatePatient, deletePatient
+    getPatientById(id: string): Promise<Patient | null>;
+    // Futuramente: updatePatient, deletePatient
 }

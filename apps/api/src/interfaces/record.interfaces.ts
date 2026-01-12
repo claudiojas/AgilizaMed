@@ -1,4 +1,8 @@
-import type { Record } from "../generated/prisma/client";
+import type { Record, Patient } from "../generated/prisma/client";
+
+export type RecordWithPatient = Record & {
+    patient: Patient;
+};
 
 export interface IRecordCreate {
     queixa_principal: string;
@@ -27,6 +31,6 @@ export interface IRecordMethods {
     updateRecord(id: string, data: IRecordUpdate): Promise<Record>;
     deleteRecord(id: string): Promise<Record>;
     getRecordById(id: string): Promise<Record | null>;
-    getAllRecordsByUserId(userId: string): Promise<Record[]>;
+    getAllRecordsByUserId(userId: string): Promise<RecordWithPatient[]>; // Updated return type
     getAllRecords(): Promise<Record[]>; // Maybe for admins or specific use cases
 }
