@@ -7,6 +7,18 @@
 AgilizMed é o módulo de HealthTech do AgilizAI, projetado para reduzir drasticamente o tempo gasto com burocracia médica. Nossa solução transforma o áudio de uma consulta médica em um prontuário eletrônico estruturado, de forma automática e inteligente, utilizando o que há de mais moderno em Inteligência Artificial.
 
 O público-alvo são médicos de consultório particular, clínicas populares e plataformas de telemedicina que buscam otimizar seu tempo e focar no que realmente importa: o atendimento ao paciente.
+<div style={{ 
+    display: 'flex', 
+    gap: '200px',
+    width: '100%'
+}}>
+    <img width="120" alt="iPhone-13-PRO-localhost (1)" src="https://github.com/user-attachments/assets/83b20979-6d42-4ab7-866c-d0dcf7a1b36c" />
+    <img width="120" alt="iPhone-13-PRO-localhost (2)" src="https://github.com/user-attachments/assets/fd728351-5bd4-419d-a82d-a8e867396016" />
+    <img width="120" alt="iPhone-13-PRO-localhost (3)" src="https://github.com/user-attachments/assets/f4988731-8cce-46d6-abcc-e771f52c755f" />
+    <img width="120" alt="iPhone-13-PRO-localhost (4)" src="https://github.com/user-attachments/assets/cc67b5ed-0e7b-4a7c-b284-7984f5a0f34d" />
+</div>
+
+
 
 ## Funcionalidades
 
